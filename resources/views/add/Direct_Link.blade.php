@@ -1,0 +1,1 @@
+https://www.effectiveratecpm.com/bgf9d0kij?key=c45875d7b3dfdacfb4fedd2229423b26

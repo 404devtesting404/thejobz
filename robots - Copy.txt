@@ -1,0 +1,33 @@
+# Allow all crawlers access to everything by default
+User-agent: *
+Disallow:
+Allow: /job-single/[a-zA-Z]*
+
+# Block specific URLs and patterns
+Disallow: /Bank_Jobs/
+Disallow: /test/
+Disallow: /Army_Jobs/
+Disallow: /Police_Jobs/
+Disallow: /home/
+Disallow: /ajx_city/
+Disallow: /ajx_featch/  # Block all URLs starting with /ajx_featch
+Disallow: /ajx_featch_categorys
+Disallow: /job_single/
+Disallow: /job-single/
+Disallow: /job-department/municipal-corporation
+Disallow: /job-department/the-begum-nusrat-bhutto-women-university
+Disallow: /job-single/job-available-at-national-skills-university-nsu
+Disallow: /job-single/job-announcement-at-police-training-center-khyber
+Disallow: /job-single/principal-jobs-2024-in-opal-crown-girls-high-school-quetta
+Disallow: /job-single/amber-chemical-industries-hattar-jobs-2024
+Disallow: /job_department/
+Disallow: /job_city/
+Disallow: /overseas-jobs/karimi-contracting-company-qatar-jobs-2021
+Disallow: /express-jobs/media-group-jobs-2021-in-karachi
+Disallow: /*_*
+Disallow: /private/
+Disallow: /admin/
+Disallow: /*?search=
+
+# Provide the location of the sitemap
+Sitemap: https://thejobz.pk/sitemap.xml

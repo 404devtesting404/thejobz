@@ -1,0 +1,48 @@
+# Allow all crawlers access to everything by default
+User-agent: *
+Disallow:
+
+# Allow storage files to be crawled
+Allow: /storage/
+
+# Allow only alphabetic URLs in /job-single/
+Allow: /job-single/[a-zA-Z]*
+
+# Block all numeric and other /job-single/ patterns
+Disallow: /job-single/[0-9]
+Disallow: /job-single/job-available-at-national-skills-university-nsu
+Disallow: /job-single/job-announcement-at-police-training-center-khyber
+Disallow: /job-single/principal-jobs-2024-in-opal-crown-girls-high-school-quetta
+Disallow: /job-single/amber-chemical-industries-hattar-jobs-2024
+
+# Block specific URLs and patterns
+Disallow: /Bank_Jobs/
+Disallow: /test/
+Disallow: /Army_Jobs/
+Disallow: /Police_Jobs/
+Disallow: /home/
+Disallow: /ajx_city/
+Disallow: /ajx_featch/  # Block all URLs starting with /ajx_featch
+Disallow: /ajx_featch_categorys
+Disallow: /job_single/
+
+Disallow: /job-department/mari-petroleum-company-limited
+Disallow: /job-department/municipal-corporation
+Disallow: /job-department/the-begum-nusrat-bhutto-women-university
+Disallow: /job_department/
+Disallow: /job_city/
+Disallow: /overseas-jobs/karimi-contracting-company-qatar-jobs-2021
+Disallow: /express-jobs/media-group-jobs-2021-in-karachi
+
+
+# Block query parameters but allow storage URLs with underscores
+Disallow: /*?search=
+Disallow: /private/
+Disallow: /admin/
+Disallow: /downlode
+
+# Removed Disallow: /*_*
+
+# Provide the location of the sitemap 
+Sitemap: https://thejobz.pk/sitemap
+Sitemap: https://thejobz.pk/sitemap.xml

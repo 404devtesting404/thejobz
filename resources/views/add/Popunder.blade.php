@@ -1,0 +1,1 @@
+<script type='text/javascript' src='//pl23064049.effectivegatecpm.com/b3/96/5d/b3965d51270b03dbd0c9d5980c1afbce.js'></script>

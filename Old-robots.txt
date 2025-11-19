@@ -1,0 +1,55 @@
+# Allow all crawlers access to everything
+User-agent: *
+Disallow:
+
+# Block specific URLs from all bots
+User-agent: *
+Disallow: /Bank_Jobs/
+Disallow: /test/
+Disallow: /Army_Jobs/
+Disallow: /Police_Jobs/
+Disallow: /home/
+Disallow: /ajx_city/
+Disallow: /ajx_featch/
+Disallow: /ajx_featch_categorys 
+Disallow: /job_single/[0-9]      # Block single digit numbers
+Disallow: /job_single/[1-9][0-9] # Block two-digit numbers
+Disallow: /job_single/[1-9][0-9][0-9]     # Block three-digit numbers
+Disallow: /job_single/[1-9][0-9][0-9][0-9]  # Block four-digit numbers
+Disallow: /job_single/[1-9][0-9][0-9][0-9][0-9]  # Block five-digit numbers
+Disallow: /job_single/[1-9][0-9]{5}  # Block six-digit numbers
+Disallow: /job_single/[1-9][0-9]{4}  # Block six-digit numbers
+Disallow: /job_single/[1-9][0-9]{6}  # Block seven-digit numbers
+Disallow: /job_single/ 
+Disallow: /job-single/[0-9]{1,6}
+Disallow: /job-department/municipal-corporation
+Disallow: /job-department/the-begum-nusrat-bhutto-women-university
+Disallow: /job-single/job-available-at-national-skills-university-nsu
+Disallow: /job-single/job-announcement-at-police-training-center-khyber
+Disallow: /job-single/principal-jobs-2024-in-opal-crown-girls-high-school-quetta
+Disallow: /job-single/amber-chemical-industries-hattar-jobs-2024
+Disallow: /job_department/ 
+Disallow: /job_city/ 
+Disallow: /overseas-jobs/karimi-contracting-company-qatar-jobs-2021
+Disallow: /express-jobs/media-group-jobs-2021-in-karachi
+Disallow: /*_*  # Block all URLs containing underscores
+
+# Prevent specific bots from accessing certain areas
+User-agent: BadBot
+Disallow: /
+
+# Allow Googlebot to access everything
+User-agent: Googlebot
+Allow: /job-single/ 
+
+# Block a specific directory from all bots
+User-agent: *
+Disallow: /private-directory/
+Disallow: /Bank_Jobs/
+
+# Allow a specific directory for all bots
+User-agent: *
+Allow: /public-directory/
+
+# Provide the location of the sitemap
+Sitemap: https://thejobz.pk/sitemap

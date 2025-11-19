@@ -1,0 +1,74 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect HTTP to HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # Redirect WWW to non-WWW
+    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    # Redirect Trailing Slashes If Not A Folder
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Block Direct Access to Sensitive Files
+    <FilesMatch "(^\.|composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|env|config\.php|autoload\.php)">
+        Order Allow,Deny
+        Deny from all
+    </FilesMatch>
+
+    # Block Hotlinking of Images
+    RewriteCond %{HTTP_REFERER} !^$
+    RewriteCond %{HTTP_REFERER} !^https://thejobz\.pk/.*$ [NC]
+    RewriteCond %{HTTP_REFERER} !^https://www\.thejobz\.pk/.*$ [NC]
+    RewriteRule \.(jpg|jpeg|png|gif|webp)$ - [F,NC,L]
+
+    # Send Requests To Front Controller (Laravel)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Enable Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/css text/javascript application/javascript application/x-javascript text/xml application/xml application/xml+rss application/json
+</IfModule>
+
+# Enable Browser Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# PHP Settings
+<IfModule php7_module>
+    php_value max_execution_time 3000
+    php_value memory_limit 512M
+    php_value post_max_size 50M
+    php_value upload_max_filesize 50M
+</IfModule>
+
+# Block Bad Bots
+<IfModule mod_setenvif>
+    SetEnvIfNoCase User-Agent "libwww-perl" bad_bot
+    SetEnvIfNoCase User-Agent "MJ12bot" bad_bot
+    SetEnvIfNoCase User-Agent "AhrefsBot" bad_bot
+    SetEnvIfNoCase User-Agent "SemrushBot" bad_bot
+    SetEnvIfNoCase User-Agent "Baiduspider" bad_bot
+    SetEnvIfNoCase User-Agent "DotBot" bad_bot
+</IfModule>
+
+<IfModule mod_authz_core.c>
+    <RequireAll>
+        Require all granted
+        Require not env bad_bot
+    </RequireAll>
+</IfModule>
