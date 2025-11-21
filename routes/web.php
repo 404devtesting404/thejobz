@@ -18,8 +18,9 @@ use App\Http\Controllers\Admin\GoldRateController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::post('/generate-text', [\App\Http\Controllers\CohereController::class, 'generateText'])->name('generate-text');;
+Route::get('/make-small-images', [App\Http\Controllers\WebController::class, 'generatesmallimages'])->name('make-small-images');
+Route::get('/me', [App\Http\Controllers\WebController::class, 'me'])->name('me');
+Route::post('/generate-text', [\App\Http\Controllers\CohereController::class, 'generateText'])->name('generate-text');
 Route::view('/generate', 'generate');
 
 Route::get('view', [Controller::class, 'index']);

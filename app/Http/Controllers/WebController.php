@@ -79,7 +79,7 @@ class WebController extends Controller
                     </a>
                     <div class='job-info'>
                         <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank'>
-                            <h2 class='job-title'>{$title}</h2>
+                            <h3 class='job-title'>{$title}</h3>
                         </a>
                         <a href='" . route('job-department', ['slug' => $row->department_slug]) . "' target='_blank'>
                             <p class='job-department'>{$department}</p>
@@ -749,7 +749,7 @@ class WebController extends Controller
             return redirect()->route('home')->with('error', 'An error occurred. Please try again.');
         }
     }
-    
+
     public function job_paper($slug)
     {
         try {
@@ -1932,7 +1932,7 @@ class WebController extends Controller
     public function ajx_city($id = null, Request $request)
     {
         if ($request->ajax()) {
-    
+
             $data = DB::table('jobs')
                 ->join('job_department', 'jobs.department', '=', 'job_department.id')
                 ->join('job_city', 'jobs.city', '=', 'job_city.id')
@@ -1952,7 +1952,7 @@ class WebController extends Controller
                 ->where('jobs.is_deleted', '=', 0)
                 ->where('job_city.slug', $id)
                 ->orderByDesc('jobs.id');
-    
+
               return DataTables::of($data)
                     ->addIndexColumn()
                     ->addColumn('action', function ($row) {
@@ -1960,7 +1960,7 @@ class WebController extends Controller
                         $title = Str::limit($row->title, 45);
                         $department = Str::limit($row->department, 42);
                         $imgPath = asset('storage/app/public/jobs/' . $row->img);
-    
+
                         return "
                         <article class='job-card animate-fadeIn'>
                             <header class='job-header'>
@@ -1971,7 +1971,7 @@ class WebController extends Controller
                                 </a>
                                 <div class='job-info'>
                                     <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank'>
-                                        <h2 class='job-title'>{$title}</h2>
+                                        <h3 class='job-title'>{$title}</h2>
                                     </a>
                                     <a href='" . route('job-department', ['slug' => $row->department_slug]) . "' target='_blank'>
                                         <p class='job-department'>{$department}</p>
@@ -2033,7 +2033,7 @@ class WebController extends Controller
                             </a>
                             <div class='job-info'>
                                 <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank'>
-                                    <h2 class='job-title'>{$title}</h2>
+                                    <h3 class='job-title'>{$title}</h2>
                                 </a>
                                 <a href='" . route('job-department', ['slug' => $row->department_slug]) . "' target='_blank'>
                                     <p class='job-department'>{$department}</p>

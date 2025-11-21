@@ -2203,5 +2203,53 @@ class WebController extends Controller
         // Return the view with the blog data
         return view('blog-single', compact('blog'));
     }
+    
+    public function generatesmallimages()
+    { 
+        $jobsFolder = storage_path('app/public/jobs/');
+        $smallFolder = storage_path('app/public/jobs_small/');
+
+        if (!file_exists($smallFolder)) {
+            mkdir($smallFolder, 0777, true);
+        }
+
+        // Get all images from jobs folder
+        $files = glob($jobsFolder . '*.{jpg,jpeg,png,webp,gif}', GLOB_BRACE);
+
+        if (empty($files)) {
+            return "❌ No images found in jobs folder.";
+        }
+
+        foreach ($files as $filePath) {
+            $filename = basename($filePath);
+
+            try {
+                // $smallPath = $smallFolder . $filename;
+                // $img = \Intervention\Image\Facades\Image::make($filePath)
+                //     ->fit(80, 80) // crop + resize perfect square
+                //     ->encode('webp', 85);
+                // $img->save($smallPath);
+
+
+                $smallPath = $smallFolder . $filename;
+                $img = \Intervention\Image\Facades\Image::make($filePath)
+                    ->resize(80, 80, function ($constraint) {
+                        $constraint->aspectRatio(); // ratio same rakhega
+                        $constraint->upsize();      // chhoti image ko bada nahi karega
+                    })
+                    ->encode('webp', 85);
+                $img->save($smallPath);
+
+            } catch (\Exception $e) {
+                \Log::error("Error generating small image for {$filename}: " . $e->getMessage());
+            }
+        }
+
+        return "✔ All images processed successfully! Small images created.";
+    }
+    
+    public function me(){
+        dd('ddd');
+    }
 
 }

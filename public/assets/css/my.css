@@ -5,6 +5,7 @@
     box-sizing: border-box;
 }
 
+
 body {
     background: #f8f9fa;
     font-family: 'Roboto', sans-serif;
@@ -16,6 +17,9 @@ body {
 .navbar {
     background: #fff;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.job-department {
+    color: #333 !important; /* High contrast */
 }
 
 .navbar-brand img {
@@ -127,6 +131,21 @@ body {
     text-align: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+.job-card {
+    color: #222;
+}
+.job-card h3,
+.job-card p {
+    color: #222 !important;
+}
+.aply-btn {
+    background: #0b7a40 !important; /* Darker green */
+    color: #fff !important;
+}
+.card.bg-success {
+    background: #1e7e34 !important;
+}
+
 
 /* 🌐 Job Card */
 .job-card {
@@ -607,6 +626,10 @@ p.dec_featured{
     font-size: 35px;
     color: #28a745;
     transition: color 0.3s ease;
+}
+.logo-img {
+    width: 100%;
+    height: auto;
 }
 
 

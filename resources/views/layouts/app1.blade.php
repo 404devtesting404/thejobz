@@ -79,7 +79,9 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <img src="{{ asset('resources/assets/images/resource/logo9.png') }}" alt="TheJobz Logo">
+                {{-- <img src="{{ asset('resources/assets/images/resource/logo9.png') }}" alt="TheJobz Logo"> --}}
+                <img src="{{ asset('resources/assets/images/resource/logo9.png') }}" alt="TheJobz Logo" width="110" height="auto">
+
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar"
                 aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -199,8 +201,11 @@
             <div class="row">
                 <!-- ✅ About + Logo -->
                 <div class="col-md-3 text-center text-md-left mb-4 mb-md-0">
-                    <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo"
-                        style="max-width:150px;" class="mb-3">
+                    {{-- <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo"
+                        style="max-width:150px;" class="mb-3"> --}}
+                        <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo"   width="150"  height="40"   class="mb-3 logo-img">
+
+                        {{-- <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo" width="150" height="auto" style="max-width:150px;" class="mb-3"> --}}
                     <p>TheJobz.pk is Pakistan’s top job portal helping job seekers and companies connect.</p>
                     <div class="social-icons mt-3">
                         <a href="https://www.facebook.com/profile.php?id=61558140501160" target="_blank"
