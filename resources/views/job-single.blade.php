@@ -1,5 +1,5 @@
 @extends('layouts.app1')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
 @php
     $fullUrl = url()->full();
     $path = parse_url($fullUrl, PHP_URL_PATH);
@@ -43,47 +43,45 @@
         $meta_description = "Latest job $endpoint_capital, Jobs in $department, Jobs in $endpoint_capital, $department jobs, Jobs in Pakistan $endpoint_capital, Jobs, jobs pakistan, pakistan jobs, careers, Recruitment, Employment, Hiring, Banking, CVs, paper jobs, Finance, IT, Marketing, Resume, Work, naukri, Online Jobs, Newspaper Jobs";
     }
 @endphp
-@section('title')
-    {!! $job_single->title !!}
-@endsection
+@section('title') {!! $job_single->title !!}@endsection
 @section('meta')
     @if (!empty($job_single->meta_keywords) && !empty($job_single->meta_description) && !empty($job_single->meta_canonical))
-        <meta name="keywords" content="{!! $job_single->meta_keywords !!}" />
-        <meta name="description" content="{!! $job_single->meta_description !!}" />
-        <link rel="canonical" href="{{ $job_single->meta_canonical }}" />
+        <!--<meta name="keywords" content="{!! $job_single->meta_keywords !!}" />-->
+    <meta name="description" content="{!! $job_single->meta_description !!}" />
+    <link rel="canonical" href="{{ $job_single->meta_canonical }}" />
     @else
-        <meta
-            name="keywords"content="{{ $endpoint_capital }}, Jobs in {{ $department }}, Jobs in {{ $endpoint_capital }}, {{ $department }} jobs, Jobs in Pakistan {{ $endpoint_capital }}, Jobs, jobs pakistan, pakistan jobs, careers, Recruitment, Employment, Hiring, Banking, CVs, paper jobs, Finance, IT, Marketing, Resume, Work, naukri, Online Jobs, Newspaper Jobs" />
-        <meta name="description"
-            content="Latest job {{ $endpoint_capital }}, {{ $department }} jobs, Search latest {{ $endpoint_capital }} jobs online. Start new career by applying job advertisement of {{ \Carbon\Carbon::parse($job_single->posted)->format('d F, Y') }} in {{ $paper_name }} paper" />
-        <link rel="canonical" href="{{ $fullUrl }}" />
+        <!--<meta  name="keywords"content="{{ $endpoint_capital }}, Jobs in {{ $department }}, Jobs in {{ $endpoint_capital }}, {{ $department }} jobs, Jobs in Pakistan {{ $endpoint_capital }}, Jobs, jobs pakistan, pakistan jobs, careers, Recruitment, Employment, Hiring, Banking, CVs, paper jobs, Finance, IT, Marketing, Resume, Work, naukri, Online Jobs, Newspaper Jobs" />-->
+    <meta name="description" content="Latest job {{ $endpoint_capital }}, {{ $department }} jobs, Search latest {{ $endpoint_capital }} jobs online. Start new career by applying job advertisement of {{ \Carbon\Carbon::parse($job_single->posted)->format('d F, Y') }} in {{ $paper_name }} paper" />
+    <link rel="canonical" href="{{ $fullUrl }}" />
     @endif
-    <meta property="og:locale" content="en_US" />
+<meta name="robots" content="max-image-preview:large, index, follow">
+    <meta name="author" content="TheJobz">
+    <meta name="publisher" content="TheJobz.pk">
+    <meta property="og:locale" content="en-PK" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Thejobz.pk" />
     <meta property="og:title" content="{!! $job_single->title !!}" />
     <meta property="og:url" content="{{ $fullUrl }}" />
     @if (!empty($job_single->meta_keywords) && !empty($job_single->meta_description) && !empty($job_single->meta_canonical))
-        <meta property="og:description" content="{!! $job_single->meta_description !!}">
+<meta property="og:description" content="{!! $job_single->meta_description !!}">
     @else
-        <meta property="og:description"
-            content="Latest job {{ $endpoint_capital }}, {{ $department }} jobs ,Search latest {{ $endpoint_capital }} jobs online. Start new career by applying job advertisement of {{ \Carbon\Carbon::parse($job_single->posted)->format('d F, Y') }} in {{ $paper_name }} paper">
+    <meta property="og:description" content="Latest job {{ $endpoint_capital }}, {{ $department }} jobs ,Search latest {{ $endpoint_capital }} jobs online. Start new career by applying job advertisement of {{ \Carbon\Carbon::parse($job_single->posted)->format('d F, Y') }} in {{ $paper_name }} paper">
     @endif
-    <meta property="og:image" content="{{ asset('storage/app/public/jobs') . '/' . $job_single->img }}" />
+<meta property="og:image" content="{{ asset('storage/app/public/jobs') . '/' . $job_single->img }}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@thejobzdotpk" />
     <meta name="twitter:title" content="{!! $job_single->title !!}" />
     @if (!empty($job_single->meta_keywords) && !empty($job_single->meta_description) && !empty($job_single->meta_canonical))
-        <meta property="twitter:description" content="{!! $job_single->meta_description !!}">
+<meta property="twitter:description" content="{!! $job_single->meta_description !!}">
     @else
-        <meta name="twitter:description"
-            content="Latest job {{ $endpoint_capital }}, {{ $department }} jobs ,Search latest {{ $endpoint_capital }} jobs online. Start new career by applying job advertisement of {{ \Carbon\Carbon::parse($job_single->posted)->format('d F, Y') }} in {{ $paper_name }} paper">
+    <meta name="twitter:description" content="Latest job {{ $endpoint_capital }}, {{ $department }} jobs ,Search latest {{ $endpoint_capital }} jobs online. Start new career by applying job advertisement of {{ \Carbon\Carbon::parse($job_single->posted)->format('d F, Y') }} in {{ $paper_name }} paper">
     @endif
-    <meta name="twitter:image" content="{{ asset('storage/app/public/jobs') . '/' . $job_single->img }}" />
+<meta name="twitter:image" content="{{ asset('storage/app/public/jobs') . '/' . $job_single->img }}" />
     <meta name="twitter:image:width" content="1280" />
     <meta name="twitter:image:height" content="720" />
     <meta property="og:image:width" content="1280">
     <meta property="og:image:height" content="720">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
 @endsection
 
 

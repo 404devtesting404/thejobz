@@ -18,7 +18,16 @@ use App\Http\Controllers\Admin\GoldRateController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/make-small-images', [App\Http\Controllers\WebController::class, 'generatesmallimages'])->name('make-small-images');
+
+Route::get('/showAllImages', [App\Http\Controllers\WebController::class, 'showAllImages'])->name('showAllImages');
+Route::get('/download-image/{filename}', [App\Http\Controllers\WebController::class, 'downloadImage'])
+    ->name('download.image');
+
+
+Route::get('/downloadJobImagesBatches', [App\Http\Controllers\WebController::class, 'downloadJobImagesBatches'])->name('downloadJobImagesBatches');
+Route::get('/downloadJobImage', [App\Http\Controllers\WebController::class, 'downloadJobImage'])->name('downloadJobImage');
+  
+Route::get('/generateJobImages', [App\Http\Controllers\WebController::class, 'generateJobImages'])->name('generateJobImages');
 Route::get('/me', [App\Http\Controllers\WebController::class, 'me'])->name('me');
 Route::post('/generate-text', [\App\Http\Controllers\CohereController::class, 'generateText'])->name('generate-text');
 Route::view('/generate', 'generate');

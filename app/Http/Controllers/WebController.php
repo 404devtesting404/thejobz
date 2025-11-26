@@ -37,10 +37,44 @@ class WebController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index(Request $request)
-    {
+public function index(Request $request)
+{
+    // Popular Departments
+    $popular_job_department = DB::table('jobs')
+        ->join('job_department', 'jobs.department', '=', 'job_department.id')
+        ->selectRaw('job_department.name, job_department.id, job_department.icon, count(job_department.name) as department_count, job_department.slug')
+        ->groupBy('job_department.id')
+        ->orderBy('department_count', 'DESC')
+        ->whereNotNull('jobs.img')
+        ->where('jobs.status', 1)
+        ->where('jobs.is_deleted', 0)
+        ->take(4)
+        ->get();
 
-        if ($request->ajax()) {
+    // Popular Cities
+    $popular_job_city = DB::table('jobs')
+        ->join('job_city', 'jobs.city', '=', 'job_city.id')
+        ->selectRaw('job_city.name, job_city.id, job_city.icon, count(job_city.name) as city_count')
+        ->groupBy('job_city.id')
+        ->orderBy('city_count', 'DESC')
+        ->whereNotNull('jobs.img')
+        ->where('jobs.status', 1)
+        ->where('jobs.is_deleted', 0)
+        ->take(6)
+        ->get();
+
+    // Department-specific job counts
+    $army_jobs_count   = DB::table('jobs')->join('job_department', 'job_department.id', '=', 'jobs.department')->where('job_department.name', 'LIKE', '%army%')->whereNotNull('jobs.img')->where('jobs.status', 1)->where('jobs.is_deleted', 0)->count();
+    $navy_jobs_count   = DB::table('jobs')->join('job_department', 'job_department.id', '=', 'jobs.department')->where('job_department.name', 'LIKE', '%navy%')->whereNotNull('jobs.img')->where('jobs.status', 1)->where('jobs.is_deleted', 0)->count();
+    $police_jobs_count = DB::table('jobs')->join('job_department', 'job_department.id', '=', 'jobs.department')->where('job_department.name', 'LIKE', '%police%')->whereNotNull('jobs.img')->where('jobs.status', 1)->where('jobs.is_deleted', 0)->count();
+    $bank_jobs_count   = DB::table('jobs')->join('job_department', 'job_department.id', '=', 'jobs.department')->where('job_department.name', 'LIKE', '%bank%')->whereNotNull('jobs.img')->where('jobs.status', 1)->where('jobs.is_deleted', 0)->count();
+
+    $jobsCount        = DB::table('jobs')->whereYear('posted', '>=', 2022)->count();
+    $departmentCount  = DB::table('job_department')->count();
+    $job_cityCount    = DB::table('job_city')->count();
+
+    // AJAX DataTables
+    if ($request->ajax()) {
         $data = DB::table('jobs')
             ->join('job_department', 'jobs.department', '=', 'job_department.id')
             ->join('job_city', 'jobs.city', '=', 'job_city.id')
@@ -59,124 +93,77 @@ class WebController extends Controller
             ->where('jobs.status', 1)
             ->where('jobs.is_deleted', 0)
             ->orderBy('jobs.id', 'DESC');
-            // ❌ yahan ->get() nahi likhna
 
         return DataTables::of($data)
-        ->addIndexColumn()
-        ->addColumn('action', function ($row) {
-            $paper_name = ucfirst(str_replace('_', ' ', $row->paper_name));
-            $title = Str::limit($row->title, 45);
-            $department = Str::limit($row->department, 42);
-            $imgPath = asset('storage/app/public/jobs/' . $row->img);
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $paper_name = ucfirst(str_replace('_', ' ', $row->paper_name));
+                $title = Str::limit($row->title, 45);
+                $department = Str::limit($row->department, 42);
 
-            return "
-            <article class='job-card animate-fadeIn'>
-                <header class='job-header'>
-                    <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank' title='{$title}'>
-                        <div class='job-logo'>
-                            <img src='{$imgPath}' alt='{$title} - {$department}' loading='lazy'>
-                        </div>
-                    </a>
-                    <div class='job-info'>
-                        <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank'>
-                            <h3 class='job-title'>{$title}</h3>
+                $imgSmall = asset('storage/app/public/jobs_small/' . $row->img);
+                $imgMedium = asset('storage/app/public/jobs_medium/' . $row->img);
+                $imgLarge = asset('storage/app/public/jobs_large/' . $row->img);
+
+                $width = 120;
+                $height = 120;
+
+                return "
+                <article class='job-card animate-fadeIn'>
+                    <header class='job-header'>
+                        <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank' title='{$title}'>
+                            <div class='job-logo' style='width: {$width}px; height: {$height}px; display:flex; align-items:center; justify-content:center;'>
+                                <img src='{$imgSmall}' 
+                                     srcset='{$imgSmall} 1x, {$imgMedium} 2x, {$imgLarge} 3x' 
+                                     width='{$width}' 
+                                     height='{$height}' 
+                                     style='object-fit: contain; display: block;' 
+                                     loading='lazy' 
+                                     alt='{$title} - {$department}'>
+                            </div>
                         </a>
-                        <a href='" . route('job-department', ['slug' => $row->department_slug]) . "' target='_blank'>
-                            <p class='job-department'>{$department}</p>
-                        </a>
-                        <div class='job-meta'>
-                            <span><i class='la la-map-marker'></i>Job city: {$row->city}</span>
-                            <span><i class='la la-calendar'></i>Job posted: {$row->posted}</span>
+                        <div class='job-info'>
+                            <a href='" . route('job-single', ['slug' => $row->slug]) . "' target='_blank'>
+                                <h3 class='job-title'>{$title}</h3>
+                            </a>
+                            <a href='" . route('job-department', ['slug' => $row->department_slug]) . "' target='_blank'>
+                                <p class='job-department'>{$department}</p>
+                            </a>
+                            <div class='job-meta'>
+                                <span><i class='la la-map-marker'></i>Job city: {$row->city}</span>
+                                <span><i class='la la-calendar'></i>Job posted: {$row->posted}</span>
+                            </div>
                         </div>
-                    </div>
-                </header>
-                <footer class='job-footer'>
-                    <span class='job-source'>{$paper_name}</span>
-                    <a href='" . route('job-single', ['slug' => $row->slug]) . "' class='aply-btn'>Apply Now</a>
-                </footer>
-            </article>";
-        })
-        ->rawColumns(['action'])
-        ->make(true);
-        }
-
-
-        $popular_job_department =  $users = DB::table('jobs')
-            ->join('job_department', 'jobs.department', '=', 'job_department.id')
-            ->selectRaw('job_department.name, job_department.id , job_department.icon , count(job_department.name) as department_count ,job_department.slug')
-            ->groupBy('job_department.id')
-            ->orderBy('department_count', 'DESC')
-            // ->having('department_count', '>', 8)
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            // ->where('jobs.view', '>', 1)
-            ->take(4)
-            ->get();
-
-        $popular_job_city =  $users = DB::table('jobs')
-            ->join('job_city', 'jobs.city', '=', 'job_city.id')
-            ->selectRaw('job_city.name, job_city.id ,job_city.icon , count(job_city.name) as city_count ')
-            ->groupBy('job_city.id')
-            ->orderBy('city_count', 'DESC')
-            // ->having('city_count', '>', 2)
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->take(6)
-            ->get();
-
-
-        $army_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%army%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $navy_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%navy%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $police_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%police%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $bank_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%bank%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $jobsCount = DB::table('jobs')
-            ->whereYear('posted', '>=', 2022)
-            ->count();
-        $departmentCount = DB::table('job_department')
-            ->count();
-        $job_cityCount = DB::table('job_city')
-            ->count();
-        return view('home')->with('popular_job_city', $popular_job_city)->with('departmentCount', $departmentCount)
-            ->with('popular_job_department', $popular_job_department)->with('jobsCount', $jobsCount)
-            ->with('job_cityCount', $job_cityCount)
-            ->with('army_jobs_count', $army_jobs_count)->with('navy_jobs_count', $navy_jobs_count)
-            ->with('police_jobs_count', $police_jobs_count)->with('bank_jobs_count', $bank_jobs_count);
-        // return view('home')->with('jobs', $jobs)->with('departmentCount', $departmentCount)->with('popular_job_department', $popular_job_department)->with('jobsCount', $jobsCount)->with('job_cityCount', $job_cityCount);
+                    </header>
+                    <footer class='job-footer'>
+                        <span class='job-source'>{$paper_name}</span>
+                        <a href='" . route('job-single', ['slug' => $row->slug]) . "' class='aply-btn'>Apply Now</a>
+                    </footer>
+                </article>";
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
+
+    // Normal page view
+    return view('home')
+        ->with('popular_job_city', $popular_job_city)
+        ->with('departmentCount', $departmentCount)
+        ->with('popular_job_department', $popular_job_department)
+        ->with('jobsCount', $jobsCount)
+        ->with('job_cityCount', $job_cityCount)
+        ->with('army_jobs_count', $army_jobs_count)
+        ->with('navy_jobs_count', $navy_jobs_count)
+        ->with('police_jobs_count', $police_jobs_count)
+        ->with('bank_jobs_count', $bank_jobs_count);
+}
+
+
+
+
+
+
+
     public function search(Request $request)
     {
         $army_jobs_count = DB::table('job_department')
@@ -2116,127 +2103,191 @@ class WebController extends Controller
 
     public function random_catadery_job($id = null)
     {
-        $army_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%army%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $navy_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%navy%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $police_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%police%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        $bank_jobs_count = DB::table('job_department')
-            ->select('jobs.id', 'jobs.img')
-            ->join('jobs', 'job_department.id', '=', 'jobs.department')
-            ->where('job_department.name', 'LIKE', '%bank%')
-            ->where('jobs.img', '!=', null)
-            ->where('jobs.status', '=', 1)
-            ->where('jobs.is_deleted', '=', 0)
-            ->count();
-
-        switch (strtolower($id)) {
-            case 'jang':
+        // $bank_jobs_count = DB::table('job_department')
+        //     ->select('jobs.id', 'jobs.img')
+        //     ->join('jobs', 'job_department.id', '=', 'jobs.department')
+        //     ->where('job_department.name', 'LIKE', '%bank%')
+        //     ->where('jobs.img', '!=', null)
+        //     ->where('jobs.status', '=', 1)
+        //     ->where('jobs.is_deleted', '=', 0)
+        //     ->count();
+        $fullUrl = url()->full();
+        $path = parse_url($fullUrl, PHP_URL_PATH);
+        $segments = explode('/', $path);
+        $endpoint = end($segments);
+        switch (strtolower($endpoint)) {
+            case 'pak-army-jobs':
                 $faqData = [
                     [
                         "@type" => "Question",
-                        "name" => "Q1: What types of jobs are listed in Jang newspaper ads?",
+                        "name" => "Q1: How can I join the Pak Army after Intermediate (FSc)?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Govt, private firms, teaching, medical, engineering, and admin roles are commonly listed."
+                            "text" => "You can join as a Commissioned Officer through the PMA Long Course (2-year training) or as a Soldier/Technical Clerk depending on your marks. Minimum 55% marks are usually required for PMA."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q2: How often are Jang jobs updated on TheJobz.pk?",
+                        "name" => "Q2: What is the age limit for Pak Army Jobs in 2025?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Fresh listings are updated daily to ensure you never miss new openings."
+                            "text" => "For Officers (PMA): 17–22 years (Intermediate holders) or 17–24 years (Graduates).<br>For Soldiers: 17.5–23 years.<br>For Civilians: 18–30 years (with age relaxations)."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q3: Can I apply directly through TheJobz.pk?",
+                        "name" => "Q3: Can females join the Pakistan Army?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Yes — simply open job details and click Apply Online. Some listings may redirect to their official site."
+                            "text" => "Yes, females can join via the Lady Cadet Course (LCC) as Captains in Corps like ICTO, ISPR, and Engineering, or join the AFNS (Nursing Service) after FSc Pre-Medical."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q4: Are city-specific Jang jobs available?",
+                        "name" => "Q4: How do I apply online for Army jobs?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Yes, including Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad & more."
+                            "text" => "Visit the official recruitment portal joinpakarmy.gov.pk to register. For Civilian jobs, you often need to download the application form and send it via post to the respective unit (e.g., GHQ, COD)."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q5: Do Jang jobs include internships?",
+                        "name" => "Q5: What is the minimum height required for Army jobs?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Yes — some companies post trainee & internship opportunities as well."
+                            "text" => "Males: Minimum 5 ft 4 inches (162.5 cm).<br>Females: Minimum 5 ft (152.4 cm).<br>Soldiers: Minimum 5 ft 6 inches is preferred for combat roles."
                         ]
                     ]
                 ];
             break;
-            case 'thenews':
+            case 'pak-airforce-jobs':
                 $faqData = [
                     [
                         "@type" => "Question",
-                        "name" => "Q1: What types of jobs are listed in The News newspaper?",
+                        "name" => "Q1: What are the most common rejection reasons for PAF Officer posts (GD Pilot/Aeronautical)?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Listings include govt, private, finance, teaching, IT, engineering, and admin roles."
+                            "text" => "A: The primary reasons are failure to meet the strict F.Sc. 60% aggregate minimum, being over the 16-22 years age limit, and failing the initial medical tests, especially the strict 6/6 eyesight requirement. Check these immediately before applying."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q2: How frequently are The News jobs updated on TheJobz.pk?",
+                        "name" => "Q2: Are females eligible for the GD Pilot course?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Newspaper jobs are refreshed daily for the latest vacancies."
+                            "text" => "A: Yes, females are eligible to apply for the GD Pilot course via the Short Service Commission (SSC), which often has different height and vision requirements than the male Permanent Commission (PC) entry. Always check the latest official advertisement."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q3: Can I apply online for The News jobs?",
+                        "name" => "Q3: What is the difference between Airmen and Aero Trades?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Yes — simply open the job post and follow the online application instructions."
+                            "text" => "A: Airmen is the general term for enlisted personnel. Aero Trades are specific technical branches (e.g., Electrician, Mechanic) that require specific educational qualifications (usually Matriculation or DAE) and lead to technical maintenance roles critical to PAF operations."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q4: Are The News jobs available city-wise?",
+                        "name" => "Q4: What subjects must I prepare for the PAF Initial Test?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Yes — Lahore, Karachi, Islamabad, Rawalpindi & major cities are covered."
+                            "text" => "A: The computer-based test for officer entry typically includes a high-stakes Intelligence Test (Verbal & Non-Verbal) and an Academic Test covering Physics, Mathematics, and English. Consistent practice is key to passing the screening phase."
                         ]
                     ],
                     [
                         "@type" => "Question",
-                        "name" => "Q5: Do listings include overseas jobs?",
+                        "name" => "Q5: How can I ensure I don't miss the recruitment registration deadline?",
                         "acceptedAnswer" => [
                             "@type" => "Answer",
-                            "text" => "Yes — The News newspaper occasionally features overseas job ads."
+                            "text" => "A: PAF recruitment (both Officer and Airmen) runs on strict annual cycles. Always visit joinpaf.gov.pk and register on the first day the portal opens. Late submissions are strictly rejected."
+                        ]
+                    ]
+                ];
+            break;
+            case 'pak-navy-jobs':
+                $faqData = [
+                    [
+                        "@type" => "Question",
+                        "name" => "Q1: How can I ensure my PN Cadet application is accepted?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: Focus immediately on meeting the minimum 60% F.Sc. marks and the 16½ to 21 age limit. Errors in these areas are the most common reason for rejection. Secure your slot by applying early on the official portal."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q2: What is the fastest path to a secured job in the Navy?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: If you meet the 60% F.Sc. requirement, the PN Cadet course offers a Permanent Commission—the highest level of job security and career growth. Sailor roles offer guaranteed technical employment and stability after training."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q3: How do I prepare successfully for the Navy Entrance Test?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: The initial test is computerized. Focus on practicing Intelligence Tests (Verbal/Non-Verbal) and revising Physics, Maths, and English fundamentals, as these subjects determine your eligibility for further selection."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q4: Is the minimum height (5 ft 4 inches) a strict elimination factor?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: Yes, the height criteria (5 ft 4 inches) for officer and sailor roles is strictly implemented during the physical examination. Do not waste time applying if you do not meet this standard."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q5: Where can I find the official Navy application deadlines?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: All official deadlines, including the next PN Cadet and Sailor terms, are updated immediately on the joinpaknavy.gov.pk portal. We reflect these critical dates on our page instantly to help you avoid missing the registration window."
+                        ]
+                    ]
+                ];
+            break;
+            case 'civilian-jobs':
+                $faqData = [
+                    [
+                        "@type" => "Question",
+                        "name" => "Q1: What are the typical educational requirements for entry-level civilian jobs?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: Civilian roles are highly accessible: LDC (Lower Division Clerk), Stenotypist, and UDC (Upper Division Clerk) typically require Intermediate (FA/F.Sc.) or a Bachelor's degree, often paired with a minimum typing speed. Class-IV jobs require Matric or Middle pass."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q2: What is the main difference between applying through FPSC and PPSC?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: FPSC (Federal Public Service Commission) manages recruitment for Federal Ministries and departments (jobs across Pakistan). PPSC (Punjab Public Service Commission) recruits for jobs only in Punjab. Always check the job's governing body and required domicile before applying."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q3: Does post-qualification experience count for basic civilian posts?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: For BPS-1 to BPS-15 posts (like LDC/UDC), typically no prior experience is required. Experience is only calculated after the date the required degree/qualification result was announced, as per official government rules."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q4: How do I prepare for the written test for LDC/UDC roles?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: The majority of tests for these non-technical roles are MCQ-based. Focus heavily on General Knowledge (GK), Current Affairs, Islamic Studies/Ethics, and Basic English Grammar. You must also practice the compulsory typing/computer proficiency test specific to LDC/Stenotypist roles."
+                        ]
+                    ],
+                    [
+                        "@type" => "Question",
+                        "name" => "Q5: What is the age limit for civilian government jobs?",
+                        "acceptedAnswer" => [
+                            "@type" => "Answer",
+                            "text" => "A: The standard age limit is often around 18 to 28/30 years for initial recruitment, but the government grants a 5-year general age relaxation across all federal and most provincial jobs, allowing candidates up to 33 years old to apply for many basic scale posts."
                         ]
                     ]
                 ];
@@ -2263,10 +2314,7 @@ class WebController extends Controller
                             break;
          }
 
-        $fullUrl = url()->full();
-        $path = parse_url($fullUrl, PHP_URL_PATH);
-        $segments = explode('/', $path);
-        $endpoint = end($segments);
+
         $meta_data = [
             'title' => '',
             'description' => '',
@@ -2316,7 +2364,9 @@ class WebController extends Controller
             ]
         ];
         $data = [
-            'title' => ''
+            'title' => '',
+            'h1' => '',
+            'h1Paragraph '=> ""
         ];
         if ($endpoint == 'pak-navy-jobs') {
             $navy_jobs = DB::table('job_department')
@@ -2335,29 +2385,28 @@ class WebController extends Controller
                 ->values() // Index reset karega
                 ->take(20);
             $meta_data = [
-                'title' => 'Join Pakistan Navy - Apply for Govt Jobs 2025 | TheJobz.pk',
-                'description' => 'Explore the latest Pakistan Navy jobs 2025. Apply online for Pak Navy recruitment, officer and sailor vacancies. Daily job updates on TheJobz.pk',
-                'keywords' => 'Navy Jobs 2025, Pakistan Navy Jobs, Government Jobs, Latest Jobs in Pakistan, TheJobz.pk, Pak Navy Careers, Defense Jobs, Job Ads',
-                'canonical' => 'https://thejobz.pk/Navy-Jobs',
-                'og_title' => 'Join Pakistan Navy - Apply for Govt Jobs 2025 | TheJobz.pk',
-                'og_description' => 'Find and apply for the latest Pakistan Navy jobs in 2025. Get daily job updates on TheJobz.pk.',
+                'title' => 'Pakistan Navy Jobs 2025: Secure Your Career | Apply Online Now',
+                'description' => "Don't Miss Deadlines! Apply online for Pakistan Navy Officer (PN Cadet), Sailor & Civilian jobs. Get instant access to eligibility and direct application links for maximum success.",
+                // 'keywords' => 'Navy Jobs 2025, Pakistan Navy Jobs, Government Jobs, Latest Jobs in Pakistan, TheJobz.pk, Pak Navy Careers, Defense Jobs, Job Ads',
+                'canonical' => 'https://thejobz.pk/pak-navy-jobs',
+                'og_title' => 'Pakistan Navy Jobs 2025: Secure Your Career | Apply Online Now',
+                'og_description' => "Don't Miss Deadlines! Apply online for Pakistan Navy Officer (PN Cadet), Sailor & Civilian jobs. Get instant access to eligibility and direct application links for maximum success.",
                 'og_image' => 'https://thejobz.pk/resources/assets/images/navy_logo.svg',
                 'og_image_alt' => 'Join Pakistan Navy - Latest Navy Jobs 2025',
-                'twitter_title' => 'Join Pakistan Navy - Apply for Govt Jobs 2025 | TheJobz.pk',
-                'twitter_description' => 'Pakistan Navy career opportunities 2025. Apply for the latest officer & sailor jobs. Stay updated with TheJobz.pk',
+                'twitter_title' => 'Pakistan Navy Jobs 2025: Secure Your Career | Apply Online Now',
+                'twitter_description' => "Don't Miss Deadlines! Apply online for Pakistan Navy Officer (PN Cadet), Sailor & Civilian jobs. Get instant access to eligibility and direct application links for maximum success.",
                 'twitter_image_alt' => 'Apply for Pakistan Navy Jobs 2025',
-
             ];
             $JSON_D_Schema = [
                 "@context" => "https://schema.org",
                 "@type" => "CollectionPage",
                 "name" => "Pakistan Navy Jobs 2025",
                 "description" => "Join Pakistan Navy with the latest government job openings for officers, sailors, and civilians. Apply online today.",
-                "url" => "https://thejobz.pk/Navy-Jobs",
+                "url" => "https://thejobz.pk/pak-navy-jobs",
                 "hiringOrganization" => [
                     "@type" => "Organization",
                     "name" => "Pakistan Navy",
-                    "sameAs" => "https://thejobz.pk/Navy-Jobs"
+                    "sameAs" => "https://thejobz.pk/pak-navy-jobs"
                 ],
                 "jobLocation" => [
                     "@type" => "Place",
@@ -2420,13 +2469,12 @@ class WebController extends Controller
             }
 
             $data = [
-                'title' => 'Join Pakistan Navy 2025 | Latest Govt Jobs & Online Apply - TheJobz.pk'
+                'title' => 'Pakistan Navy Jobs 2025: Secure Your Career | Apply Online Now',
+                'h1' => 'Pakistan Navy Recruitment 2025: Direct Online Application & Eligibility Checklist',
+                'h1Paragraph'=> "Ready to secure your future with guaranteed Government stability and benefits? We provide the definitive, fast track to Pakistan Navy recruitment 2025. Find your path—whether it's the high-status PN Cadet course, secure Sailor roles, or vital Civilian positions—and APPLY ONLINE NOW. Don't wait for the official notification; use our eligibility checklist and direct portal links to register before the term deadline!"
             ];
         }
-
         if ($endpoint == 'pak-army-jobs') {
-
-
             $army_jobs = DB::table('job_department')
                 ->select('jobs.*')
                 ->join('jobs', 'job_department.id', '=', 'jobs.department')
@@ -2443,16 +2491,16 @@ class WebController extends Controller
                 ->values() // Index reset karega
                 ->take(20);
             $meta_data = [
-                'title' => 'Latest Pakistan Army Jobs 2025 | Join Pak Army - TheJobz.pk',
-                'description' => 'Apply online for the latest Pakistan Army jobs 2025, including officer, sailor, and civilian vacancies. Get daily Pak Army recruitment updates on TheJobz.pk.',
-                'keywords' => 'Latest Pakistan Army Jobs 2025, Pak Army Jobs, Army Recruitment 2025, Govt Jobs Pakistan, Defense Jobs, TheJobz.pk, Online Army Jobs',
-                'canonical' => 'https://thejobz.pk/Army-Jobs',
-                'og_title' => 'Latest Pakistan Army Jobs 2025 - Apply Online | TheJobz.pk',
-                'og_description' => 'Find the latest Pakistan Army job openings for officers, sailors, and civilians. Apply online and stay updated with TheJobz.pk.',
+                'title' => 'Pak Army Jobs 2025 | Join Pak Army Online Registration',
+                'description' => 'Join Pak Army in 2025. Apply online for PMA Long Course 157, Soldier (Sipahi), Captain & Civilian jobs. Check eligibility and registration dates on TheJobz.pk.',
+                // 'keywords' => 'Latest Pakistan Army Jobs 2025, Pak Army Jobs, Army Recruitment 2025, Govt Jobs Pakistan, Defense Jobs, TheJobz.pk, Online Army Jobs',
+                'canonical' => 'https://thejobz.pk/pak-army-jobs',
+                'og_title' => 'Pak Army Jobs 2025 | Join Pak Army Online Registration',
+                'og_description' => 'Join Pak Army in 2025. Apply online for PMA Long Course 157, Soldier (Sipahi), Captain & Civilian jobs. Check eligibility and registration dates on TheJobz.pk.',
                 'og_image' => 'https://thejobz.pk/resources/assets/images/army_logo.png',
                 'og_image_alt' => 'Join Pakistan Army - Latest Army Jobs 2025',
-                'twitter_title' => 'Pakistan Army Jobs 2025 - Apply Now',
-                'twitter_description' => 'Join the Pakistan Army in 2025. Explore latest job openings and apply online.',
+                'twitter_title' => 'Pak Army Jobs 2025 | Join Pak Army Online Registration',
+                'twitter_description' => 'Join Pak Army in 2025. Apply online for PMA Long Course 157, Soldier (Sipahi), Captain & Civilian jobs. Check eligibility and registration dates on TheJobz.pk.',
                 'twitter_image_alt' => 'Apply for Pakistan Army Jobs 2025',
 
             ];
@@ -2461,11 +2509,11 @@ class WebController extends Controller
                 "@type" => "CollectionPage",
                 "name" => "Latest Pakistan Army Jobs 2025",
                 "description" => "Browse the latest Pakistan Army job openings for officers, sailors, and civilians. Apply online today.",
-                "url" => "https://thejobz.pk/Army-Jobs",
+                "url" => "https://thejobz.pk/pak-army-jobs",
                 "hiringOrganization" => [
                     "@type" => "Organization",
                     "name" => "Pakistan Army",
-                    "sameAs" => "https://thejobz.pk/Army-Jobs"
+                    "sameAs" => "https://thejobz.pk/pak-army-jobs"
                 ],
                 "hasPart" => [],
                 "jobLocation" => [
@@ -2528,116 +2576,11 @@ class WebController extends Controller
             }
 
             $data = [
-                'title' => 'Latest Pakistan Army Jobs 2025 | Join Pak Army - TheJobz.pk'
+                'title' => 'Pak Army Jobs 2025 | Join Pak Army Online Registration',
+                'h1' => 'Join Pak Army Jobs 2025 – Online Registration & Latest Ads',
+                'h1Paragraph'=> "Prepare yourself to serve the nation by applying for the latest Pak Army Jobs 2025. Whether you aspire to become a Commissioned Officer through the PMA Long Course, join as a Soldier (Sipahi), or serve in Civilian support roles at GHQ, we provide the confirmed Online Registration links and advertisement images. Explore specialized tracks like the Lady Cadet Course, Medical Corps (AMC), and Technical Cadet Course to find the rank that fits your qualifications."
             ];
         }
-
-        if ($endpoint == 'Bank-Jobs') {
-            $bank_jobs = DB::table('job_department')
-                ->select('jobs.*')
-                ->join('jobs', 'job_department.id', '=', 'jobs.department')
-                ->where('job_department.name', 'LIKE', '%bank%')
-                ->where('jobs.img', '!=', null)
-                ->where('jobs.meta_description', '!=', null)
-                ->where('jobs.status', '=', 1)
-                ->where('jobs.is_deleted', '=', 0)
-                // ->whereDate('jobs.posted', '>=', \Carbon\Carbon::today())
-                ->whereYear('jobs.posted', '>=', 2025)
-                ->orderBy('jobs.created_at', 'desc') // Latest jobs first
-                ->get()
-                ->unique('title') // Unique titles
-                ->values() // Index reset karega
-                ->take(20);
-            $meta_data = [
-                'title' => 'Latest Bank Jobs 2025 | Careers in Banking - TheJobz.pk',
-                'description' => 'Find the latest bank jobs in Pakistan 2025. Apply online for banking, finance, and government job openings at TheJobz.pk. Stay updated with daily job alerts.',
-                'keywords' => 'Bank Jobs 2025, Banking Jobs Pakistan, Finance Jobs, Government Bank Jobs, Pakistan Bank Careers, Latest Jobs in Pakistan, TheJobz.pk, Job Openings',
-                'canonical' => 'https://thejobz.pk/Bank-Jobs',
-                'og_title' => 'Latest Bank Jobs 2025 | Careers in Banking - TheJobz.pk',
-                'og_description' => 'Looking for banking jobs in Pakistan? Explore the latest bank job vacancies for 2025 and apply online today at TheJobz.pk.',
-                'og_image' => 'https://thejobz.pk/resources/assets/images/bank_logo.png',
-                'og_image_alt' => 'Join Pakistan Bank - Latest Bank Jobs 2025',
-                'twitter_title' => 'Latest Bank Jobs 2025 | Careers in Banking - TheJobz.pk',
-                'twitter_description' => 'Start your career in banking! Find and apply for the latest Pakistan bank jobs for 2025 at TheJobz.pk.',
-                'twitter_image_alt' => 'Apply for Pakistan Bank Jobs 2025',
-
-            ];
-            $JSON_D_Schema = [
-                "@context" => "https://schema.org",
-                "@type" => "CollectionPage",
-                "name" => "Pakistan Bank Jobs 2025",
-                "description" => "Explore the latest job openings at Pakistan Bank and start your career in banking. Apply online today",
-                "url" => "https://thejobz.pk/Bank-Jobs",
-                "hiringOrganization" => [
-                    "@type" => "Organization",
-                    "name" => "Multiple Banks in Pakistan",
-                    "sameAs" => "https://thejobz.pk/Bank-Jobs"
-                ],
-                "jobLocation" => [
-                    "@type" => "Place",
-                    "address" => [
-                        "addressCountry" => "PK"
-                    ]
-                ],
-                "employmentType" => "Full-time",
-                "applicantLocationRequirements" => [
-                    "@type" => "Country",
-                    "name" => "Pakistan"
-                ],
-                "publisher" => [
-                    "@type" => "Organization",
-                    "name" => "TheJobz.pk",
-                    "url" => "https://thejobz.pk",
-                    "logo" => [
-                        "@type" => "ImageObject",
-                        "url" => "https://thejobz.pk/resources/assets/images/resource/logo9.png",
-                        "width" => 600,
-                        "height" => 60
-                    ]
-                ]
-            ];
-            foreach ($bank_jobs as $job) {
-                $JSON_D_Schema["hasPart"][] = [
-                    "@type" => "JobPosting",
-                    "title" => $job->title,
-                    "datePosted" => Carbon::parse($job->posted)->format('Y-m-d'),
-                    "validThrough" => Carbon::parse($job->posted)->addDays(20)->format('Y-m-d'),
-                    "hiringOrganization" => [
-                        "@type" => "Organization",
-                        "name" => "Multiple Banks in Pakistan"
-                    ],
-                    "jobLocation" => [
-                        "@type" => "Place",
-                        "address" => [
-                            "@type" => "PostalAddress",
-                            "streetAddress" => $job->street_address,
-                            "addressLocality" => $job->address_locality,
-                            "addressRegion" => $job->address_region,
-                            "postalCode" =>  $job->postal_code,
-                            "addressCountry" => "PK"
-                        ]
-                    ],
-                    "employmentType" => "Full-time",
-                    "baseSalary" => [
-                        "@type" => "MonetaryAmount",
-                        "currency" => "PKR",
-                        "value" => $job->BaseSalaryValue,
-                        "description" => "Salary depends on experience and skills."
-                    ],
-                    "description" => Str::limit($job->meta_description, 300)
-                ];
-            }
-
-            // **Agar koi job available nahi hai to `hasPart` ko remove kar do**
-            if (empty($JSON_D_Schema["hasPart"])) {
-                unset($JSON_D_Schema["hasPart"]);
-            }
-
-            $data = [
-                'title' => 'Latest Bank Jobs 2025 | Apply for Banking Careers in Pakistan - TheJobz.pk'
-            ];
-        }
-
         if ($endpoint == 'pak-airforce-jobs') {
 
             $army_jobs = DB::table('job_department')
@@ -2656,16 +2599,16 @@ class WebController extends Controller
                 ->values() // Index reset karega
                 ->take(20);
             $meta_data = [
-                'title' => 'Latest Pakistan Airforce Jobs 2025 | Join Pak Airforce - TheJobz.pk',
-                'description' => 'Apply online for the latest Pakistan Airforce jobs 2025, including officer, sailor, and civilian vacancies. Get daily Pak Airforce recruitment updates on TheJobz.pk.',
-                'keywords' => 'Latest Pakistan Airforce Jobs 2025, Pak Airforce Jobs, Airforce Recruitment 2025, Govt Jobs Pakistan, Defense Jobs, TheJobz.pk, Online Airforce Jobs',
+                'title' => 'PAF Jobs 2025: GD Pilot & Officer Careers | Apply Now',
+                'description' => 'Last Call for PAF Recruitment 2025! Apply online for GD Pilot, Aeronautical Engineering, and Airmen jobs. Get essential eligibility and direct links on joinpaf.gov.pk.',
+                // 'keywords' => 'Latest Pakistan Airforce Jobs 2025, Pak Airforce Jobs, Airforce Recruitment 2025, Govt Jobs Pakistan, Defense Jobs, TheJobz.pk, Online Airforce Jobs',
                 'canonical' => 'https://thejobz.pk/pak-airforce-jobs',
-                'og_title' => 'Latest Pakistan Airforce Jobs 2025 - Apply Online | TheJobz.pk',
-                'og_description' => 'Find the latest Pakistan Airforce job openings for officers, sailors, and civilians. Apply online and stay updated with TheJobz.pk.',
+                'og_title' => 'PAF Jobs 2025: GD Pilot & Officer Careers | Apply Now',
+                'og_description' => 'Last Call for PAF Recruitment 2025! Apply online for GD Pilot, Aeronautical Engineering, and Airmen jobs. Get essential eligibility and direct links on joinpaf.gov.pk.',
                 'og_image' => 'https://thejobz.pk/resources/assets/images/airforce.webp',
                 'og_image_alt' => 'Join Pakistan Airforce - Latest Airforce Jobs 2025',
-                'twitter_title' => 'Pakistan Airforce Jobs 2025 - Apply Now',
-                'twitter_description' => 'Join the Pakistan Airforce in 2025. Explore latest job openings and apply online.',
+                'twitter_title' => 'PAF Jobs 2025: GD Pilot & Officer Careers | Apply Now',
+                'twitter_description' => 'Last Call for PAF Recruitment 2025! Apply online for GD Pilot, Aeronautical Engineering, and Airmen jobs. Get essential eligibility and direct links on joinpaf.gov.pk.',
                 'twitter_image_alt' => 'Apply for Pakistan Airforce Jobs 2025',
 
             ];
@@ -2741,14 +2684,16 @@ class WebController extends Controller
             }
 
             $data = [
-                'title' => 'Latest Pakistan Airforce Jobs 2025 | Join Pak Airforce - TheJobz.pk'
+                'title' => 'PAF Jobs 2025: GD Pilot & Officer Careers | Apply Now',
+                'h1' => 'Pakistan Air Force (PAF) Recruitment 2025: Secure Your Permanent Commission',
+                'h1Paragraph'=> "The Pakistan Air Force (PAF) offers one of the most prestigious and secure career paths in the nation. We provide the fastest and most reliable guide to all recruitment terms, including the highly sought-after General Duty (GD) Pilot course and Aeronautical Engineering entry. If you are aiming for a Permanent Commission or a secure Airman/Aero Trades role, use this page for your eligibility checklist, immediate application links via joinpaf.gov.pk, and essential initial test preparation advice. Don't risk missing the deadline—apply now!"
             ];
         }
-        if ($endpoint == 'Police-Jobs') {
+        if ($endpoint == 'civilian-jobs') {
             $police_jobs = DB::table('job_department')
                 ->select('jobs.*')
                 ->join('jobs', 'job_department.id', '=', 'jobs.department')
-                ->where('job_department.name', 'LIKE', '%police%')
+                ->where('job_department.name', 'LIKE', '%civilian%')
                 ->where('jobs.img', '!=', null)
                 ->where('jobs.meta_description', '!=', null)
                 ->where('jobs.status', '=', 1)
@@ -2761,16 +2706,16 @@ class WebController extends Controller
                 ->values() // Index reset karega
                 ->take(20);
             $meta_data = [
-                'title' => 'Pakistan Police Jobs 2025 - Apply Online for Govt Vacancies | TheJobz.pk',
-                'description' => 'Apply online for Pakistan Police jobs 2025. Find the latest government vacancies for officers, sailors, and constables. Stay updated with TheJobz.pk.',
+                'title' => 'Civilian Jobs Pakistan 2025: Govt, LDC, UDC, Assistant | Apply Now',
+                'description' => 'Secure Your Future with the latest Civilian Jobs in Pakistan (BPS-1 to BPS-16). Find non-uniform vacancies in Armed Forces, Ministries, and Departments. Direct online application links.',
                 'keywords' => 'Pakistan Police Jobs 2025, Govt Police Jobs, Police Constable Jobs, Pak Police Careers, Security Jobs Pakistan, TheJobz.pk Jobs, Defense Sector Hiring',
                 'canonical' => 'https://thejobz.pk/Police-Jobs',
-                'og_title' => 'Pakistan Police Jobs 2025 - Apply Online for Govt Vacancies | TheJobz.pk',
-                'og_description' => 'Find and apply for the latest Police jobs in 2025. Get daily job updates on TheJobz.pk.',
+                'og_title' => 'Civilian Jobs Pakistan 2025: Govt, LDC, UDC, Assistant | Apply Now',
+                'og_description' => 'Secure Your Future with the latest Civilian Jobs in Pakistan (BPS-1 to BPS-16). Find non-uniform vacancies in Armed Forces, Ministries, and Departments. Direct online application links.',
                 'og_image' => 'https://thejobz.pk/resources/assets/images/police_logo.jpg',
                 'og_image_alt' => 'Join Police - Latest Police Jobs 2025',
-                'twitter_title' => 'Pakistan Police Jobs 2025 - Apply Online for Govt Vacancies | TheJobz.pk',
-                'twitter_description' => 'Police career opportunities 2025. Apply for the latest officer & sailor jobs. Stay updated with TheJobz.pk',
+                'twitter_title' => 'Civilian Jobs Pakistan 2025: Govt, LDC, UDC, Assistant | Apply Now',
+                'twitter_description' => 'Secure Your Future with the latest Civilian Jobs in Pakistan (BPS-1 to BPS-16). Find non-uniform vacancies in Armed Forces, Ministries, and Departments. Direct online application links.',
                 'twitter_image_alt' => 'Apply for Police Jobs 2025',
 
             ];
@@ -2846,13 +2791,13 @@ class WebController extends Controller
             }
 
             $data = [
-                'title' => 'Join Police 2025 | Latest Govt Jobs & Online Apply - TheJobz.pk'
+                'title' => 'Pakistan Government & Armed Forces Civilian Jobs 2025',
+                'h1' => 'Pakistan Government & Armed Forces Civilian Jobs 2025: All Matric to Master Vacancies',
+                'h1Paragraph'=> "Looking for guaranteed career stability without the combat commitments of military service? Civilian roles within the government sector, including positions in the Armed Forces (Navy, Air Force, Army), Federal Ministries (FPSC), and Provincial Departments (PPSC), offer excellent pay scales (BPS-1 to BPS-16) and lifelong benefits. This is your comprehensive hub for non-uniform roles like LDC, UDC, Assistants, and Stenotypists. We collect official vacancies immediately and provide the direct links and essential eligibility checklists you need to apply successfully before the next term deadline. Start your application today!"
             ];
         }
 
-        return view('random_catadery_job', compact('army_jobs_count', 'data', 'navy_jobs_count', 'police_jobs_count', 'bank_jobs_count','faqData', 'meta_data', 'JSON_D_Schema'));
-        // return view('random_catadery_job')->with('army_jobs_count', $army_jobs_count)->with('navy_jobs_count', $navy_jobs_count)
-        //     ->with('police_jobs_count', $police_jobs_count)->with('bank_jobs_count', $bank_jobs_count);
+        return view('random_catadery_job', compact('data','faqData', 'meta_data', 'JSON_D_Schema'));
     }
 
 
@@ -3535,5 +3480,151 @@ class WebController extends Controller
         // Return the view with the blog data
         return view('blog-single', compact('blog'));
     }
+    
+public function generateJobImages()
+{
+    // Extend execution & memory
+    set_time_limit(0); 
+    ini_set('memory_limit','-1');
+
+    $jobsFolder = storage_path('app/public/jobs/');
+    $smallFolder = storage_path('app/public/jobs_small/');
+    $mediumFolder = storage_path('app/public/jobs_medium/');
+    $largeFolder = storage_path('app/public/jobs_large/');
+
+    // Ensure folders exist
+    foreach ([$smallFolder, $mediumFolder, $largeFolder] as $folder) {
+        if (!file_exists($folder)) mkdir($folder, 0777, true);
+    }
+
+    // Get all job images
+    $files = glob($jobsFolder . '*.{jpg,jpeg,png,webp,gif}', GLOB_BRACE);
+    if (empty($files)) return "❌ No images found in jobs folder.";
+
+    foreach ($files as $filePath) {
+        $filename = basename($filePath); // original name with extension
+
+        try {
+            // Small 80px
+            \Intervention\Image\Facades\Image::make($filePath)
+                ->resize(80, 80, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })->encode(pathinfo($filename, PATHINFO_EXTENSION), 85)
+                ->save($smallFolder . $filename);
+
+            // Medium 120px
+            \Intervention\Image\Facades\Image::make($filePath)
+                ->resize(120, 120, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })->encode(pathinfo($filename, PATHINFO_EXTENSION), 85)
+                ->save($mediumFolder . $filename);
+
+            // Large 300px
+            \Intervention\Image\Facades\Image::make($filePath)
+                ->resize(300, 300, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })->encode(pathinfo($filename, PATHINFO_EXTENSION), 85)
+                ->save($largeFolder . $filename);
+
+        } catch (\Exception $e) {
+            \Log::error("Error processing {$filename}: " . $e->getMessage());
+        }
+    }
+
+    return "✔ All images processed successfully with original names and overwritten if existed!";
+}
+
+
+
+public function downloadJobImagesBatches()
+{
+    set_time_limit(0);
+    ini_set('memory_limit','-1');
+
+    $jobsFolder = storage_path('app/public/jobs/');
+    $zipFolder  = storage_path('app/public/jobs_zips/'); // temporary zips folder
+
+    // Ensure zip folder exists
+    if (!file_exists($zipFolder)) {
+        mkdir($zipFolder, 0777, true);
+    }
+
+    // Get all image files
+    $files = glob($jobsFolder . '*.{jpg,jpeg,png,webp,gif}', GLOB_BRACE);
+    if (empty($files)) {
+        return "❌ No images found!";
+    }
+
+    $batchSize = 1000; // files per zip
+    $batch = 1;
+    $count = 0;
+    $zip = new \ZipArchive();
+
+    foreach ($files as $file) {
+        // Create new zip for every batchSize
+        if ($count % $batchSize === 0) {
+            if ($count > 0) $zip->close();
+            $zipName = $zipFolder . "jobs_batch_{$batch}.zip";
+            $zip->open($zipName, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            $batch++;
+        }
+
+        $zip->addFile($file, basename($file));
+        $count++;
+    }
+
+    $zip->close(); // close last zip
+
+    return response()->json([
+        'message' => "✔ All images are zipped in batches of {$batchSize}. Check storage/app/public/jobs_zips/",
+        'zip_folder' => asset('storage/jobs_zips/')
+    ]);
+}
+
+public function downloadJobImage($filename)
+{
+    $filePath = storage_path('app/public/jobs/' . $filename);
+
+    if (!file_exists($filePath)) {
+        abort(404, "File not found.");
+    }
+
+    return response()->download($filePath, $filename);
+}
+
+
+public function showAllImages()
+{
+    // Jobs table se data fetch
+    $files = \DB::table('jobs')
+        ->where('is_deleted', 0)
+        ->where('downlode', 0)   // column name check kar lein
+        ->get();
+
+    return view('all_images', compact('files'));
+}
+
+
+
+
+public function downloadImage($filename)
+{
+
+    \DB::table('jobs')
+        ->where('img', $filename)
+        ->update(['downlode' => 1]);
+
+
+    $path = storage_path('app/public/jobs/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->download($path);
+}
 
 }

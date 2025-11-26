@@ -90,12 +90,12 @@
         @endif
         <!-- ✅ Heading -->
         {{-- <h2 class="job-detail-page section-title">{{ ucfirst($id) }} Jobs</h2> --}}
-        @if (isset($H1title))
-            <h1 class="section-title">{{ $H1title }}</h1>
-            <p class="dec_citys">{{ $H1Paragraph }}</p>
-        @else
-            <h2 class="job-detail-page section-title">{{ ucwords(str_replace('-', ' ', $id)) }}</h2>
-        @endif
+            @if (isset($data['h1']))
+                <h1 class="section-title">{{ $data['h1'] }}</h1>
+                <p class="dec_citys">{{ $data['h1Paragraph'] }}</p>
+            @else
+                <h2 class="job-detail-page section-title">{{ ucfirst($id) }} Jobs</h2>
+            @endif
         <!-- ✅ Top Banner -->
         @if ($web_config['adsterra_adds']->value == 1)
             <div class="Banner_728x90 mb-4 text-center">
@@ -123,7 +123,7 @@
                             </button>
                             <div id="faq-{{ $index }}" class="collapse">
                                 <div class="faq-answer p-3 bg-white animate__animated animate__fadeInUp">
-                                    {{ $faq['acceptedAnswer']['text'] }}
+                                     {!! $faq['acceptedAnswer']['text'] !!}
                                 </div>
                             </div>
                         </div>

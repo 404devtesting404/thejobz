@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en-PK">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @yield('meta')
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('resources/assets/images/resource/favicon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32"
-        href="{{ asset('resources/assets/images/resource/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('resources/assets/images/resource/favicon.png') }}">
     <title>@yield('title')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -54,7 +52,6 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow border-0 rounded-lg">
-
                 <div class="modal-body text-center p-4">
                     <img alt="notification icon" class="mb-3"
                         src="{{ asset('resources/assets/images/resource/logo8.png') }}" style="max-width:70px;">
@@ -63,25 +60,21 @@
                     <button class="btn btn-success btn-block mb-2" id="onesignal-slidedown-allow-button">Allow</button>
                     <button class="btn btn-outline-danger btn-block" data-dismiss="modal">Close</button>
                 </div>
-
             </div>
         </div>
     </div>
-
     {{-- <div class="page-loading">
         <div class="loader">
             <div class="spinner"></div>
             <img src="https://thejobz.pk/resources/assets/images/resource/logo9.png" alt="Logo">
         </div>
     </div> --}}
-
     <!-- ✅ Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="#">
                 {{-- <img src="{{ asset('resources/assets/images/resource/logo9.png') }}" alt="TheJobz Logo"> --}}
                 <img src="{{ asset('resources/assets/images/resource/logo9.png') }}" alt="TheJobz Logo" width="110" height="auto">
-
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar"
                 aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,7 +85,6 @@
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
                     {{-- <li class="nav-item"><a class="nav-link" href="/jobs">Jobs</a></li> --}}
-
                     <!-- Cities -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="citiesDropdown"
@@ -108,16 +100,13 @@
                                             $formattedSlug = $c->slug;
                                             $routeUrl = route('job-city', $formattedSlug);
                                         @endphp
-
-
-                                        <a class="dropdown-item" href="{{ $routeUrl }}">{{ $c->name }}</a>
+                            <a class="dropdown-item" href="{{ $routeUrl }}">{{ $c->name }}</a>
                                     @else
                                     @endif
                                 @endforeach
                             @endif
                         </div>
                     </li>
-
                     <!-- Categories -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown"
@@ -134,10 +123,8 @@
                                     @endif
                                 @endforeach
                             @endif
-
                         </div>
                     </li>
-
                     <!-- Paper -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown"
@@ -151,14 +138,12 @@
                                     @php
                                         $find = ['_', 'jobs'];
                                         $replace = [' ', ''];
-                                        $result = str_replace($find, $replace, $ca->paper_name);
-                                        // -------------------------------------------------------
+                                        $result = str_replace($find, $replace, $ca->paper_name); 
                                         $url_find = ['_', 'jobs'];
                                         $url_replace = ['', ''];
                                         $url = str_replace($url_find, $url_replace, $ca->paper_name);
                                     @endphp
-                                    <a class="dropdown-item"
-                                        href="{{ route('job-newspaper', $url) }}">{{ ucfirst($result) }}</a>
+                                    <a class="dropdown-item" href="{{ route('job-newspaper', $url) }}">{{ ucfirst($result) }}</a>
                                 @endforeach
                             @endif
 
@@ -176,7 +161,6 @@
                             <a class="dropdown-item" href="{{route('civilian-jobs')}}">Civilian Jobs</a>
                         </div>
                     </li>
-
                     <li class="nav-item"><a class="nav-link" href="{{ route('gold-rates') }}">Gold Rates</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('blogs') }}">Blog</a></li>
                 </ul>
@@ -188,7 +172,6 @@
                 <!--        {{-- <a href="{{ route('dashboard') }}" class="btn btn-success btn-sm">Dashboard</a> --}}-->
                 <!--        <a href="#" class="btn btn-success btn-sm">Dashboard</a>-->
                 <!--    @endguest-->
-
                 <!--</div>-->
             </div>
         </div>
@@ -201,26 +184,21 @@
             <div class="row">
                 <!-- ✅ About + Logo -->
                 <div class="col-md-3 text-center text-md-left mb-4 mb-md-0">
-                    {{-- <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo"
-                        style="max-width:150px;" class="mb-3"> --}}
+                    {{-- <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo"  style="max-width:150px;" class="mb-3"> --}}
                         <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo"   width="150"  height="40"   class="mb-3 logo-img">
-
                         {{-- <img src="{{ asset('resources/assets/images/resource/logo12.png') }}" alt="TheJobz Logo" width="150" height="auto" style="max-width:150px;" class="mb-3"> --}}
                     <p>TheJobz.pk is Pakistan’s top job portal helping job seekers and companies connect.</p>
                     <div class="social-icons mt-3">
-                        <a href="https://www.facebook.com/profile.php?id=61558140501160" target="_blank"
-                            aria-label="Follow us on Facebook">
+                        <a href="https://www.facebook.com/profile.php?id=61558140501160" target="_blank" aria-label="Follow us on Facebook">
                             <i class="fa fa-facebook"></i>
                         </a>
-                        <a href="https://whatsapp.com/channel/0029VatdEVhEquiMEWJ1Ex1t" target="_blank"
-                            aria-label="Chat with us on WhatsApp">
+                        <a href="https://whatsapp.com/channel/0029VatdEVhEquiMEWJ1Ex1t" target="_blank" aria-label="Chat with us on WhatsApp">
                             <i class="fa fa-whatsapp"></i>
                         </a>
                         {{-- <a href="https://linkedin.com" target="_blank"><i class="fa fa-linkedin"></i></a> --}}
                         {{-- <a href="https://youtube.com" target="_blank"><i class="fa fa-youtube"></i></a> --}}
                     </div>
                 </div>
-
                 <!-- ✅ Quick Links -->
                 <div class="col-md-3">
                     <h5>Quick Links</h5>
@@ -230,10 +208,8 @@
                         <li><a href="{{ route('blogs') }}">Blogs</a></li>
                         <li><a href="{{ route('privacy-policy') }}">Privacy & Security</a></li>
                         <li><a href="{{ route('contact') }}">Contact us</a></li>
-
                     </ul>
                 </div>
-
                 <!-- ✅ For Employers -->
                 {{-- <div class="col-md-3">
                     <h5>For Employers</h5>
@@ -243,16 +219,13 @@
                         <li><a href="#">Employer Login</a></li>
                     </ul>
                 </div> --}}
-
                 <!-- ✅ Contact -->
-
                 <div class="col-md-3">
                     <h5>Contact</h5>
                     <p>Email: support@thejobz.pk</p>
                   {{--   <p>Phone:+923001234567</p>--}}
                 </div>
             </div>
-
             <div class="footer-bottom">
                 <p>&copy; 2025 TheJobz.pk — All Rights Reserved</p>
             </div>
